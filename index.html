@@ -16,6 +16,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   
+  <!-- Preload primary card assets for instant display -->
+  <link rel="preload" as="image" href="assets/cards/1.webp" type="image/webp">
+  <link rel="preload" as="image" href="assets/cards/2.webp" type="image/webp">
+  <link rel="preload" as="image" href="assets/cards/3.webp" type="image/webp">
+  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -201,7 +206,7 @@
     <!-- ==============================================
          GIFT OPENING OVERLAY / TRANSITION
          ============================================== -->
-    <div id="gift-overlay" class="gift-overlay" style="display: none;">
+    <div id="gift-overlay" class="gift-overlay">
       <div class="gift-box-stage">
         
         <div class="gift-box" id="animated-gift-box">

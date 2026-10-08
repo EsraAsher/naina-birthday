@@ -266,8 +266,9 @@ class CardStackManager {
     this.currentIndex = 0;
     this.cardElements = [];
 
-    // Drag tracking state
+    // State tracking
     this.isDragging = false;
+    this.isAnimating = false;
     this.startX = 0;
     this.startY = 0;
     this.currentX = 0;
@@ -304,10 +305,11 @@ class CardStackManager {
       badgeRight.className = 'stack-badge badge-swipe-right';
       badgeRight.textContent = '🌸 NEXT';
 
-      // Card Image
+      // Card Image with async decoding and smart loading
       const img = document.createElement('img');
       img.className = 'stack-card-img';
       img.alt = `Birthday card ${idx + 1} for Naina`;
+      img.decoding = 'async';
       img.loading = idx < 3 ? 'eager' : 'lazy';
       img.src = cardSrc;
 
@@ -316,7 +318,6 @@ class CardStackManager {
         if (img.src.endsWith('.webp')) {
           img.src = cardSrc.replace('.webp', '.png');
         } else {
-          // If file missing altogether
           img.style.display = 'none';
           const fallback = document.createElement('div');
           fallback.className = 'stack-card-fallback';
@@ -350,7 +351,7 @@ class CardStackManager {
 
       if (idx === this.currentIndex) {
         card.classList.add('card-top');
-        this.attachDragEvents(card);
+        this.attachPointerEvents(card);
       } else if (idx === this.currentIndex + 1) {
         card.classList.add('card-next-1');
       } else if (idx === this.currentIndex + 2) {
@@ -367,159 +368,134 @@ class CardStackManager {
     }
   }
 
-  attachDragEvents(card) {
+  attachPointerEvents(card) {
     this.activeCard = card;
 
-    // Remove any previous handlers
-    const onTouchStart = (e) => this.handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
-    const onTouchMove = (e) => this.handleDragMove(e.touches[0].clientX, e.touches[0].clientY, e);
-    const onTouchEnd = () => this.handleDragEnd();
-
-    const onMouseDown = (e) => {
-      e.preventDefault();
-      this.handleDragStart(e.clientX, e.clientY);
-      const onMouseMove = (me) => this.handleDragMove(me.clientX, me.clientY, me);
-      const onMouseUp = () => {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-        this.handleDragEnd();
-      };
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
+    card.onpointerdown = (e) => {
+      if (this.isAnimating || this.currentIndex >= this.totalCards) return;
+      this.isDragging = true;
+      this.startX = e.clientX;
+      this.startY = e.clientY;
+      this.currentX = 0;
+      this.currentY = 0;
+      card.classList.add('dragging');
+      try {
+        card.setPointerCapture(e.pointerId);
+      } catch (err) {}
     };
 
-    card.ontouchstart = onTouchStart;
-    card.ontouchmove = onTouchMove;
-    card.ontouchend = onTouchEnd;
-    card.onmousedown = onMouseDown;
-  }
+    card.onpointermove = (e) => {
+      if (!this.isDragging || !this.activeCard) return;
 
-  handleDragStart(x, y) {
-    if (this.currentIndex >= this.totalCards) return;
-    this.isDragging = true;
-    this.startX = x;
-    this.startY = y;
-    this.currentX = 0;
-    this.currentY = 0;
+      this.currentX = e.clientX - this.startX;
+      this.currentY = (e.clientY - this.startY) * 0.3; // subtle vertical dampening
+      const rot = this.currentX * 0.08;
 
-    if (this.activeCard) {
-      this.activeCard.style.transition = 'none';
-    }
-  }
+      this.activeCard.style.transform = `translate3d(${this.currentX}px, ${this.currentY}px, 0) rotate(${rot}deg)`;
 
-  handleDragMove(x, y, event) {
-    if (!this.isDragging || !this.activeCard) return;
+      // Dynamic Badges Feedback
+      const badgeLeft = this.activeCard.querySelector('.badge-swipe-left');
+      const badgeRight = this.activeCard.querySelector('.badge-swipe-right');
 
-    this.currentX = x - this.startX;
-    this.currentY = (y - this.startY) * 0.35; // Gentle vertical dampening
-    const rot = this.currentX * 0.08;
+      if (this.currentX > 20) {
+        if (badgeRight) badgeRight.style.opacity = Math.min(1, (this.currentX - 20) / 70);
+        if (badgeLeft) badgeLeft.style.opacity = 0;
+      } else if (this.currentX < -20) {
+        if (badgeLeft) badgeLeft.style.opacity = Math.min(1, (-this.currentX - 20) / 70);
+        if (badgeRight) badgeRight.style.opacity = 0;
+      } else {
+        if (badgeLeft) badgeLeft.style.opacity = 0;
+        if (badgeRight) badgeRight.style.opacity = 0;
+      }
 
-    this.activeCard.style.transform = `translate(${this.currentX}px, ${this.currentY}px) rotate(${rot}deg)`;
-
-    // Badges feedback
-    const badgeLeft = this.activeCard.querySelector('.badge-swipe-left');
-    const badgeRight = this.activeCard.querySelector('.badge-swipe-right');
-
-    if (this.currentX > 20) {
-      if (badgeRight) badgeRight.style.opacity = Math.min(1, (this.currentX - 20) / 70);
-      if (badgeLeft) badgeLeft.style.opacity = 0;
-    } else if (this.currentX < -20) {
-      if (badgeLeft) badgeLeft.style.opacity = Math.min(1, (-this.currentX - 20) / 70);
-      if (badgeRight) badgeRight.style.opacity = 0;
-    } else {
-      if (badgeLeft) badgeLeft.style.opacity = 0;
-      if (badgeRight) badgeRight.style.opacity = 0;
-    }
-
-    // Scale up the next card slightly while dragging
-    const nextCard = this.cardElements[this.currentIndex + 1];
-    if (nextCard) {
-      const progress = Math.min(1, Math.abs(this.currentX) / 140);
-      const scale = 0.96 + 0.04 * progress;
-      const translateY = 10 - 10 * progress;
-      const rotate = -2 * (1 - progress);
-      nextCard.style.transform = `translateY(${translateY}px) scale(${scale}) rotate(${rotate}deg)`;
-    }
-  }
-
-  handleDragEnd() {
-    if (!this.isDragging || !this.activeCard) return;
-    this.isDragging = false;
-
-    const threshold = 70;
-
-    if (Math.abs(this.currentX) > threshold) {
-      // Swipe threshold met: dismiss card in drag direction
-      const direction = this.currentX > 0 ? 'right' : 'left';
-      this.dismissCard(direction);
-    } else {
-      // Snap back to center
-      this.activeCard.style.transition = 'transform 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
-      this.activeCard.style.transform = 'translate(0px, 0px) rotate(0deg)';
-
-      const badges = this.activeCard.querySelectorAll('.stack-badge');
-      badges.forEach(b => b.style.opacity = '0');
-
+      // Smoothly scale up next card underneath
       const nextCard = this.cardElements[this.currentIndex + 1];
       if (nextCard) {
-        nextCard.style.transition = 'transform 0.32s ease';
-        nextCard.style.transform = 'translateY(10px) scale(0.96) rotate(-2deg)';
+        const progress = Math.min(1, Math.abs(this.currentX) / 140);
+        const scale = 0.96 + 0.04 * progress;
+        const translateY = 10 - 10 * progress;
+        const rotate = -2 * (1 - progress);
+        nextCard.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale}) rotate(${rotate}deg)`;
       }
-    }
+    };
+
+    const handlePointerEnd = (e) => {
+      if (!this.isDragging || !this.activeCard) return;
+      this.isDragging = false;
+      this.activeCard.classList.remove('dragging');
+      try {
+        this.activeCard.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+
+      const threshold = 70;
+      if (Math.abs(this.currentX) > threshold) {
+        this.dismissCard(this.currentX > 0 ? 'right' : 'left');
+      } else {
+        // Snap back to center
+        this.activeCard.style.transition = 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
+        this.activeCard.style.transform = 'translate3d(0, 0, 0) rotate(0deg)';
+
+        const badges = this.activeCard.querySelectorAll('.stack-badge');
+        badges.forEach(b => b.style.opacity = '0');
+
+        const nextCard = this.cardElements[this.currentIndex + 1];
+        if (nextCard) {
+          nextCard.style.transition = 'transform 0.3s ease';
+          nextCard.style.transform = 'translate3d(0, 10px, 0) scale(0.96) rotate(-2deg)';
+        }
+      }
+    };
+
+    card.onpointerup = handlePointerEnd;
+    card.onpointercancel = handlePointerEnd;
   }
 
   dismissCard(direction = 'right') {
-    if (this.currentIndex >= this.totalCards) return;
+    if (this.isAnimating || this.currentIndex >= this.totalCards) return;
+    this.isAnimating = true;
 
-    const card = this.cardElements[this.currentIndex];
-    if (!card) return;
+    const topCard = this.cardElements[this.currentIndex];
+    if (!topCard) {
+      this.isAnimating = false;
+      return;
+    }
 
     this.sfx.playPop();
 
-    // Fly away animation
+    // Fly away animation with 3D acceleration
     const flyX = direction === 'right' ? '125vw' : '-125vw';
     const flyRot = direction === 'right' ? '28deg' : '-28deg';
 
-    card.style.transition = 'transform 0.38s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.32s ease';
-    card.style.transform = `translate(${flyX}, ${this.currentY || 0}px) rotate(${flyRot})`;
-    card.style.opacity = '0';
+    topCard.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.28s ease';
+    topCard.style.transform = `translate3d(${flyX}, ${this.currentY || 0}px, 0) rotate(${flyRot})`;
+    topCard.style.opacity = '0';
+
+    // Simultaneously animate next card seamlessly into top position
+    const nextCard = this.cardElements[this.currentIndex + 1];
+    if (nextCard) {
+      nextCard.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.28s ease';
+      nextCard.style.transform = 'translate3d(0, 0, 0) scale(1) rotate(0deg)';
+      nextCard.style.opacity = '1';
+    }
 
     this.currentIndex++;
 
     setTimeout(() => {
       if (this.currentIndex >= this.totalCards) {
-        // All cards finished! Transition to Quote Screen
+        this.isAnimating = false;
         if (typeof this.onComplete === 'function') {
           this.onComplete();
         }
       } else {
         this.updateStackPositions();
+        this.isAnimating = false;
       }
-    }, 280);
-  }
-
-  undoCard() {
-    if (this.currentIndex <= 0) return;
-    this.sfx.playPop();
-
-    this.currentIndex--;
-    const card = this.cardElements[this.currentIndex];
-    if (card) {
-      card.style.transition = 'none';
-      card.style.opacity = '0';
-      card.style.transform = 'translateY(-35px) scale(1.06) rotate(3deg)';
-      this.updateStackPositions();
-
-      requestAnimationFrame(() => {
-        card.style.transition = 'transform 0.36s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.3s ease';
-        card.style.opacity = '1';
-        card.style.transform = 'translate(0px, 0px) rotate(0deg)';
-      });
-    }
+    }, 300);
   }
 
   reset() {
     this.currentIndex = 0;
+    this.isAnimating = false;
     this.updateStackPositions();
   }
 
@@ -535,8 +511,6 @@ class CardStackManager {
           this.dismissCard('right');
         } else if (e.key === 'ArrowLeft') {
           this.dismissCard('left');
-        } else if (e.key === 'Backspace' || e.key === 'ArrowUp') {
-          this.undoCard();
         }
       }
     });
@@ -622,7 +596,10 @@ class BirthdayApp {
 
     // Start playback if paused
     if (!this.isMusicPlaying || this.bgMusic.paused) {
-      this.bgMusic.volume = 0;
+      try {
+        this.bgMusic.volume = 0;
+      } catch (e) {}
+
       const playPromise = this.bgMusic.play();
       if (playPromise !== undefined) {
         playPromise.then(() => {
@@ -633,7 +610,9 @@ class BirthdayApp {
             if (!this.isMusicPlaying) return;
             const elapsed = now - startTime;
             const progress = Math.min(1, elapsed / durationMs);
-            this.bgMusic.volume = progress * targetVolume;
+            try {
+              this.bgMusic.volume = progress * targetVolume;
+            } catch (e) {}
             if (progress < 1) {
               requestAnimationFrame(fadeStep);
             }
@@ -729,11 +708,8 @@ class BirthdayApp {
   triggerGiftOpening() {
     sfx.playFanfare();
 
-    this.dom.giftOverlay.style.display = 'flex';
-    requestAnimationFrame(() => {
-      this.dom.giftOverlay.classList.add('active');
-      this.dom.giftBox.classList.add('shake');
-    });
+    this.dom.giftOverlay.classList.add('active');
+    this.dom.giftBox.classList.add('shake');
 
     // Pop open the box
     setTimeout(() => {
@@ -744,11 +720,9 @@ class BirthdayApp {
 
       // Transition smoothly into card stack screen
       setTimeout(() => {
+        // Activate slideshow underneath BEFORE fading overlay to eliminate background flicker
+        this.switchToScreen('slideshow');
         this.dom.giftOverlay.classList.remove('active');
-        setTimeout(() => {
-          this.dom.giftOverlay.style.display = 'none';
-          this.switchToScreen('slideshow');
-        }, 300);
       }, 700);
 
     }, 750);
@@ -785,9 +759,10 @@ class BirthdayApp {
     this.dom.screenWelcome.classList.remove('dimmed');
     this.dom.bubbleText.textContent = "Hi Naina! I have something special for you! 🎂";
 
-    // Reset Gift Box
+    // Reset Gift Box & Overlay
     this.dom.giftBox.className = 'gift-box';
     this.dom.giftStatusText.textContent = "Opening your surprise... ✨";
+    this.dom.giftOverlay.classList.remove('active');
 
     // Reset the card stack
     this.stackManager.reset();

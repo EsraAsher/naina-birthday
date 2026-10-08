@@ -128,19 +128,28 @@ html, body {
 
 /* --- Screens Base --- */
 .screen {
-  display: none;
+  position: absolute;
+  inset: 0;
+  top: max(20px, env(safe-area-inset-top));
+  bottom: max(16px, env(safe-area-inset-bottom));
   width: 100%;
-  flex: 1;
+  display: flex;
+  flex-direction: column;
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.35s ease, transform 0.35s ease;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px) scale(0.99);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1), visibility 0.3s ease;
 }
 
 .screen.active {
-  display: flex;
-  flex-direction: column;
   opacity: 1;
-  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  position: relative;
+  inset: auto;
+  flex: 1;
 }
 
 .screen-content {
@@ -460,7 +469,7 @@ html, body {
 .gift-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(223, 244, 255, 0.94);
+  background: rgba(223, 244, 255, 0.96);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 120;
@@ -468,11 +477,15 @@ html, body {
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .gift-overlay.active {
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .gift-box-stage {
@@ -656,9 +669,8 @@ html, body {
 .stack-wrapper {
   position: relative;
   width: min(84vw, 320px);
-  height: 56vh;
-  max-height: 460px;
-  min-height: 370px;
+  aspect-ratio: 1414 / 2000;
+  max-height: 58vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -691,22 +703,23 @@ html, body {
   touch-action: none;
   cursor: grab;
   will-change: transform, opacity;
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.3s ease;
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.3s ease;
 }
 
-.stack-card:active {
+.stack-card.dragging {
   cursor: grabbing;
+  transition: none !important;
 }
 
 /* Clean Card Artwork */
 .stack-card-img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  border-radius: 16px;
+  object-fit: cover;
+  border-radius: 17px;
   display: block;
   pointer-events: none;
-  background: #FFF9FC;
 }
 
 /* Fallback Card if image fails to load */
@@ -755,16 +768,16 @@ html, body {
   transform: rotate(-10deg);
 }
 
-/* Stack Layering */
+/* Stack Layering with translate3d */
 .stack-card.card-top {
   z-index: 10;
-  transform: translate(0, 0) scale(1) rotate(0deg);
+  transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
   opacity: 1;
 }
 
 .stack-card.card-next-1 {
   z-index: 9;
-  transform: translateY(10px) scale(0.96) rotate(-2deg);
+  transform: translate3d(0, 10px, 0) scale(0.96) rotate(-2deg);
   opacity: 0.95;
   filter: brightness(0.98);
   pointer-events: none;
@@ -772,7 +785,7 @@ html, body {
 
 .stack-card.card-next-2 {
   z-index: 8;
-  transform: translateY(20px) scale(0.92) rotate(2deg);
+  transform: translate3d(0, 20px, 0) scale(0.92) rotate(2deg);
   opacity: 0.8;
   filter: brightness(0.95);
   pointer-events: none;
