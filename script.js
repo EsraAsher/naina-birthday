@@ -36,10 +36,7 @@ Every moment spent with you is a little treasure I hold close. Thank you for you
 
 I hope this year brings you everything your heart wishes for and more. You deserve all the joy in the universe, and I'm so lucky to celebrate another wonderful year of you.
 
-Happy Birthday, my Naina! 💕✨`,
-
-  // Music placeholder toast
-  musicMessage: "Music coming soon 💗 (Nihal's special playlist)"
+Happy Birthday, my Naina! 💕✨`
 };
 
 
@@ -278,16 +275,12 @@ class CardStackManager {
     this.activeCard = null;
 
     // UI elements
-    this.indexDisplay = document.getElementById('current-index-display');
-    this.totalDisplay = document.getElementById('total-count-display');
     this.progressBar = document.getElementById('stack-progress-bar');
-    this.btnUndo = document.getElementById('btn-undo');
     this.btnSwipeLeft = document.getElementById('btn-swipe-left');
     this.btnSwipeRight = document.getElementById('btn-swipe-right');
   }
 
   init() {
-    this.totalDisplay.textContent = this.totalCards;
     this.renderCards();
     this.updateStackPositions();
     this.setupButtonListeners();
@@ -367,14 +360,11 @@ class CardStackManager {
       }
     });
 
-    // Update Counter & Progress
-    const displayNum = Math.min(this.currentIndex + 1, this.totalCards);
-    this.indexDisplay.textContent = displayNum;
-    const progressPercent = Math.max(9, (displayNum / this.totalCards) * 100);
-    this.progressBar.style.width = `${progressPercent}%`;
-
-    // Undo button status
-    this.btnUndo.disabled = (this.currentIndex === 0);
+    // Update Progress Bar
+    const progressPercent = Math.max(9, ((this.currentIndex + 1) / this.totalCards) * 100);
+    if (this.progressBar) {
+      this.progressBar.style.width = `${progressPercent}%`;
+    }
   }
 
   attachDragEvents(card) {
@@ -536,7 +526,6 @@ class CardStackManager {
   setupButtonListeners() {
     this.btnSwipeLeft.addEventListener('click', () => this.dismissCard('left'));
     this.btnSwipeRight.addEventListener('click', () => this.dismissCard('right'));
-    this.btnUndo.addEventListener('click', () => this.undoCard());
 
     // Keyboard support on Desktop
     document.addEventListener('keydown', (e) => {
@@ -584,14 +573,7 @@ class BirthdayApp {
       // Final Screen Elements
       finalMessageText: document.getElementById('final-message-text'),
       btnConfettiMore: document.getElementById('btn-confetti-more'),
-      btnReplay: document.getElementById('btn-replay'),
-      
-      // Top Bar Elements
-      musicBtn: document.getElementById('music-btn'),
-      soundToggleBtn: document.getElementById('sound-toggle-btn'),
-      soundIcon: document.getElementById('sound-icon'),
-      toast: document.getElementById('toast'),
-      toastText: document.getElementById('toast-text')
+      btnReplay: document.getElementById('btn-replay')
     };
 
     // Background Music Audio Engine
@@ -629,21 +611,12 @@ class BirthdayApp {
     });
 
     this.dom.btnReplay.addEventListener('click', () => this.replaySurprise());
-
-    // Top Controls
-    this.dom.musicBtn.addEventListener('click', () => this.toggleMusic());
-
-    this.dom.soundToggleBtn.addEventListener('click', () => {
-      sfx.enabled = !sfx.enabled;
-      this.dom.soundIcon.textContent = sfx.enabled ? '🔊' : '🔇';
-      this.showToast(sfx.enabled ? 'Sound enabled 🎶' : 'Sound muted 🔇');
-    });
   }
 
   /* ==========================================================================
-     MUSIC CONTROLLER (FADE-IN & LOOPING)
+     MUSIC CONTROLLER (FADE-IN & LOOPING TO 70% VOLUME)
      ========================================================================== */
-  playMusicWithFade(targetVolume = 0.75, durationMs = 2800) {
+  playMusicWithFade(targetVolume = 0.70, durationMs = 2600) {
     if (!this.bgMusic) return;
     this.bgMusic.loop = true;
 
@@ -654,8 +627,6 @@ class BirthdayApp {
       if (playPromise !== undefined) {
         playPromise.then(() => {
           this.isMusicPlaying = true;
-          this.dom.musicBtn.classList.add('playing');
-          this.showToast("Now playing: Baarishein 🎶💗");
 
           const startTime = performance.now();
           const fadeStep = (now) => {
@@ -672,27 +643,6 @@ class BirthdayApp {
           console.log("Audio autoplay prevented:", err);
         });
       }
-    }
-  }
-
-  toggleMusic() {
-    sfx.playPop();
-    if (!this.bgMusic) return;
-
-    if (this.isMusicPlaying) {
-      this.bgMusic.pause();
-      this.isMusicPlaying = false;
-      this.dom.musicBtn.classList.remove('playing');
-      this.showToast("Music paused ⏸️");
-    } else {
-      this.bgMusic.volume = 0.75;
-      this.bgMusic.play().then(() => {
-        this.isMusicPlaying = true;
-        this.dom.musicBtn.classList.add('playing');
-        this.showToast("Now playing: Baarishein 🎶💗");
-      }).catch(err => {
-        console.log("Audio error:", err);
-      });
     }
   }
 
@@ -858,15 +808,6 @@ class BirthdayApp {
     } else if (screenName === 'final') {
       this.dom.screenFinal.classList.add('active');
     }
-  }
-
-  showToast(message) {
-    this.dom.toastText.textContent = message;
-    this.dom.toast.classList.add('show');
-    clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => {
-      this.dom.toast.classList.remove('show');
-    }, 2800);
   }
 }
 

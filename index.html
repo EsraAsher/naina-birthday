@@ -40,24 +40,6 @@
   <!-- Background Music Audio Element -->
   <audio id="bg-music" src="assets/music/BAARISHEIN%20(Studio)%20Anuv%20Jain.mp3" loop preload="auto"></audio>
 
-  <!-- Top Floating Bar: Music & Sound Controls -->
-  <header class="top-bar">
-    <div class="top-controls">
-      <button id="sound-toggle-btn" class="icon-circle-btn" aria-label="Toggle Sound Effects" title="Sound Effects">
-        <span id="sound-icon">🔊</span>
-      </button>
-      <button id="music-btn" class="icon-circle-btn" aria-label="Music Player" title="Background Music">
-        <span>🎵</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- Toast Notification for Music & Messages -->
-  <div id="toast" class="toast" role="status" aria-live="polite">
-    <span class="toast-icon">🎵</span>
-    <span id="toast-text">Music playlist coming soon 💗</span>
-  </div>
-
   <!-- MAIN APP CONTAINER -->
   <main class="app-container" id="app-container">
 
@@ -264,25 +246,15 @@
           </div>
         </div>
 
-        <!-- Mobile Controls & Card Counter -->
+        <!-- Mobile Controls -->
         <div class="stack-controls">
           <button id="btn-swipe-left" class="stack-btn nav-btn-swipe" aria-label="Swipe Left" title="Swipe Left">
             <span class="btn-arrow">👈</span>
-            <span class="btn-text">Swipe</span>
-          </button>
-          
-          <div class="counter-badge" id="card-counter-badge">
-            <span id="current-index-display">1</span>
-            <span class="counter-divider">/</span>
-            <span id="total-count-display">11</span>
-          </div>
-
-          <button id="btn-undo" class="stack-btn nav-btn-undo" aria-label="Previous Card" title="Previous Card">
-            <span class="btn-icon">↺</span>
+            <span class="btn-text">Swipe Left</span>
           </button>
 
           <button id="btn-swipe-right" class="stack-btn nav-btn-swipe" aria-label="Swipe Right" title="Swipe Right">
-            <span class="btn-text">Swipe</span>
+            <span class="btn-text">Swipe Right</span>
             <span class="btn-arrow">👉</span>
           </button>
         </div>
