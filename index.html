@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Happy Birthday Naina! 🎂💗</title>
+  
+  <!-- Meta & SEO -->
+  <meta name="description" content="A cute birthday surprise for Naina from Nihal with love and penguins! 🐧💕">
+  <meta name="theme-color" content="#DFF4FF">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  
+  <!-- Google Fonts: Fredoka & Nunito for friendly, cute, rounded game-like feel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Floating Background Elements -->
+  <div class="bg-decorations" aria-hidden="true">
+    <div class="cloud cloud-1">☁️</div>
+    <div class="cloud cloud-2">☁️</div>
+    <div class="cloud cloud-3">☁️</div>
+    <div class="floating-item star star-1">✨</div>
+    <div class="floating-item star star-2">⭐</div>
+    <div class="floating-item heart heart-1">💖</div>
+    <div class="floating-item heart heart-2">🌸</div>
+    <div class="floating-item heart heart-3">💕</div>
+    <div class="floating-item snowflake snow-1">❄️</div>
+    <div class="floating-item snowflake snow-2">❄️</div>
+  </div>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Top Floating Bar: Music & Sound Controls -->
+  <header class="top-bar">
+    <div class="branding-pill">
+      <span class="pill-dot"></span>
+      <span class="pill-text">For Naina 🎀</span>
+    </div>
+    <div class="top-controls">
+      <button id="sound-toggle-btn" class="icon-circle-btn" aria-label="Toggle Sound Effects" title="Sound Effects">
+        <span id="sound-icon">🔊</span>
+      </button>
+      <button id="music-btn" class="icon-circle-btn" aria-label="Music Player" title="Background Music">
+        <span>🎵</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Toast Notification for Music & Messages -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <span class="toast-icon">🎵</span>
+    <span id="toast-text">Music playlist coming soon 💗</span>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="app-container" id="app-container">
+
+    <!-- ==============================================
+         SCREEN 1: WELCOME SCREEN
+         ============================================== -->
+    <section id="screen-welcome" class="screen active">
+      <div class="screen-content">
+        
+        <!-- Speech Bubble for Penguin -->
+        <div class="speech-bubble" id="penguin-bubble">
+          <p id="bubble-text">Hi Naina! I have something special for you! 🎂</p>
+          <div class="bubble-tail"></div>
+        </div>
+
+        <!-- Interactive Mascot Penguin Container -->
+        <div class="mascot-stage" id="mascot-stage">
+          <div class="penguin-wrapper" id="penguin-mascot">
+            <!-- SVG Kawaii Penguin with Dynamic Expressions -->
+            <svg class="penguin-svg" viewBox="0 0 200 220" width="170" height="190" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#344054"/>
+                  <stop offset="100%" stop-color="#1D2939"/>
+                </linearGradient>
+                <linearGradient id="bellyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#FFFFFF"/>
+                  <stop offset="100%" stop-color="#F2F4F7"/>
+                </linearGradient>
+                <linearGradient id="hatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FF8FBA"/>
+                  <stop offset="100%" stop-color="#FFCDE1"/>
+                </linearGradient>
+                <linearGradient id="beakGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#FFB020"/>
+                  <stop offset="100%" stop-color="#F79009"/>
+                </linearGradient>
+                <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="glow"/>
+                  <feComposite in="SourceGraphic" in2="glow" operator="over"/>
+                </filter>
+              </defs>
+
+              <!-- Shadow -->
+              <ellipse cx="100" cy="205" rx="55" ry="12" fill="rgba(52, 64, 84, 0.15)" class="penguin-shadow" />
+
+              <!-- Left Foot -->
+              <ellipse cx="78" cy="200" rx="16" ry="9" fill="url(#beakGrad)" transform="rotate(-5 78 200)" />
+              <!-- Right Foot -->
+              <ellipse cx="122" cy="200" rx="16" ry="9" fill="url(#beakGrad)" transform="rotate(5 122 200)" />
+
+              <!-- Left Flipper -->
+              <path class="flipper flipper-left" d="M 45 110 C 25 125 22 155 42 165 C 48 168 56 150 56 130 Z" fill="url(#bodyGrad)" />
+              <!-- Right Flipper -->
+              <path class="flipper flipper-right" d="M 155 110 C 175 125 178 155 158 165 C 152 168 144 150 144 130 Z" fill="url(#bodyGrad)" />
+
+              <!-- Main Body -->
+              <ellipse cx="100" cy="125" rx="68" ry="76" fill="url(#bodyGrad)" />
+
+              <!-- White Belly -->
+              <path class="penguin-belly" d="M 100 70 C 65 70 52 105 52 145 C 52 180 72 195 100 195 C 128 195 148 180 148 145 C 148 105 135 70 100 70 Z" fill="url(#bellyGrad)" />
+
+              <!-- Rosy Cheeks -->
+              <ellipse cx="68" cy="132" rx="11" ry="8" fill="#FF8FBA" opacity="0.65" class="cheek cheek-left" />
+              <ellipse cx="132" cy="132" rx="11" ry="8" fill="#FF8FBA" opacity="0.65" class="cheek cheek-right" />
+
+              <!-- Eyes Container -->
+              <g class="penguin-eyes" id="penguin-eyes">
+                <!-- Normal / Happy Idle Eyes -->
+                <g class="eyes-normal">
+                  <circle cx="76" cy="118" r="7.5" fill="#1D2939" />
+                  <circle cx="74" cy="115" r="2.5" fill="#FFFFFF" />
+                  <circle cx="78" cy="120" r="1.2" fill="#FFFFFF" />
+
+                  <circle cx="124" cy="118" r="7.5" fill="#1D2939" />
+                  <circle cx="122" cy="115" r="2.5" fill="#FFFFFF" />
+                  <circle cx="126" cy="120" r="1.2" fill="#FFFFFF" />
+                </g>
+
+                <!-- Happy / Joyful Closed Eyes (^_^) -->
+                <g class="eyes-happy">
+                  <path d="M 68 120 Q 76 110 84 120" stroke="#1D2939" stroke-width="4" stroke-linecap="round" fill="none" />
+                  <path d="M 116 120 Q 124 110 132 120" stroke="#1D2939" stroke-width="4" stroke-linecap="round" fill="none" />
+                </g>
+
+                <!-- Sad Crying Eyes (T_T) -->
+                <g class="eyes-sad">
+                  <path d="M 68 116 Q 76 124 84 116" stroke="#1D2939" stroke-width="4" stroke-linecap="round" fill="none" />
+                  <path d="M 116 116 Q 124 124 132 116" stroke="#1D2939" stroke-width="4" stroke-linecap="round" fill="none" />
+                </g>
+              </g>
+
+              <!-- Animated Tears (for crying state) -->
+              <g class="crying-tears" id="crying-tears">
+                <path class="tear tear-left" d="M 72 124 C 66 142 64 165 72 175 C 78 165 78 142 72 124 Z" fill="#69B9FF" opacity="0.9" filter="url(#softGlow)" />
+                <path class="tear tear-right" d="M 128 124 C 122 142 120 165 128 175 C 134 165 134 142 128 124 Z" fill="#69B9FF" opacity="0.9" filter="url(#softGlow)" />
+              </g>
+
+              <!-- Beak (Normal vs Sad) -->
+              <g class="penguin-beak">
+                <path class="beak-shape" d="M 90 126 C 90 126 100 122 110 126 C 110 126 102 142 100 142 C 98 142 90 126 90 126 Z" fill="url(#beakGrad)" />
+              </g>
+
+              <!-- Pink Party Hat -->
+              <g class="party-hat">
+                <!-- Hat Cone -->
+                <polygon points="100,20 78,66 122,66" fill="url(#hatGrad)" stroke="#FF8FBA" stroke-width="1.5" />
+                <!-- Hat Stripes -->
+                <path d="M 86 52 Q 100 46 114 52" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.8" />
+                <path d="M 92 36 Q 100 32 108 36" stroke="#FFE483" stroke-width="2.5" fill="none" />
+                <!-- Hat Pom-pom -->
+                <circle cx="100" cy="18" r="8" fill="#FFE483" filter="url(#softGlow)" />
+                <!-- Hat Rim -->
+                <ellipse cx="100" cy="66" rx="24" ry="5" fill="#FFFFFF" />
+              </g>
+
+              <!-- Little Bowtie / Pink Ribbon -->
+              <g class="bowtie">
+                <polygon points="88,146 100,152 88,158" fill="#FF8FBA" />
+                <polygon points="112,146 100,152 112,158" fill="#FF8FBA" />
+                <circle cx="100" cy="152" r="4" fill="#FF6B9E" />
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Typography Greeting -->
+        <div class="greeting-box">
+          <h1 class="main-title">Happy Birthday, <span class="highlight-name">Naina!</span> 🎂💗</h1>
+          <p class="subtitle-sender">Nihal sent a little gift for you... 🎁</p>
+          <p class="question-prompt">Do you want to open it?</p>
+        </div>
+
+        <!-- Interactive Choice Buttons -->
+        <div class="actions-area" id="welcome-actions">
+          <button id="btn-yes" class="game-btn btn-yes" type="button">
+            <span class="btn-icon">💗</span>
+            <span class="btn-label">YES!</span>
+          </button>
+          <button id="btn-no" class="game-btn btn-no" type="button">
+            <span class="btn-icon">🥺</span>
+            <span class="btn-label">NO</span>
+          </button>
+        </div>
+
+        <!-- Recover Button Area (Initially Hidden, appears when NO is pressed) -->
+        <div class="recover-area" id="recover-area" style="display: none;">
+          <p class="sad-plea">Oh... you don't want it? 🥺🐧</p>
+          <button id="btn-recover" class="game-btn btn-recover pulse-glow" type="button">
+            <span class="hand-pointer">👉</span>
+            <span class="btn-label">TAP HERE 🥺</span>
+            <span class="hand-pointer">👈</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==============================================
+         GIFT OPENING OVERLAY / TRANSITION
+         ============================================== -->
+    <div id="gift-overlay" class="gift-overlay" style="display: none;">
+      <div class="gift-box-stage">
+        
+        <div class="gift-box" id="animated-gift-box">
+          <!-- Ribbon Bow -->
+          <div class="gift-bow">
+            <div class="bow-knot"></div>
+            <div class="bow-loop loop-left"></div>
+            <div class="bow-loop loop-right"></div>
+          </div>
+          <!-- Gift Lid -->
+          <div class="gift-lid">
+            <div class="lid-ribbon"></div>
+          </div>
+          <!-- Gift Base -->
+          <div class="gift-body">
+            <div class="body-ribbon-v"></div>
+            <div class="body-ribbon-h"></div>
+          </div>
+        </div>
+
+        <p class="gift-opening-text" id="gift-status-text">Opening your surprise... ✨</p>
+      </div>
+    </div>
+
+    <!-- ==============================================
+         SCREEN 2: BIRTHDAY CARDS STACK
+         ============================================== -->
+    <section id="screen-slideshow" class="screen">
+      <div class="screen-content slideshow-content">
+
+        <!-- Top Header for Stack -->
+        <div class="slideshow-header">
+          <span class="mini-mascot">🐧</span>
+          <span class="header-tag">Naina's Birthday Album 🌸</span>
+          <span class="header-sparkle">✨</span>
+        </div>
+
+        <!-- 3D Card Stack Container -->
+        <div class="stack-wrapper" id="card-stack-wrapper">
+          <div class="card-stack" id="card-stack">
+            <!-- Dynamic stack cards rendered by script.js -->
+          </div>
+        </div>
+
+        <!-- Mobile Controls & Card Counter -->
+        <div class="stack-controls">
+          <button id="btn-swipe-left" class="stack-btn nav-btn-swipe" aria-label="Swipe Left" title="Swipe Left">
+            <span class="btn-arrow">👈</span>
+            <span class="btn-text">Swipe</span>
+          </button>
+          
+          <div class="counter-badge" id="card-counter-badge">
+            <span id="current-index-display">1</span>
+            <span class="counter-divider">/</span>
+            <span id="total-count-display">11</span>
+          </div>
+
+          <button id="btn-undo" class="stack-btn nav-btn-undo" aria-label="Previous Card" title="Previous Card">
+            <span class="btn-icon">↺</span>
+          </button>
+
+          <button id="btn-swipe-right" class="stack-btn nav-btn-swipe" aria-label="Swipe Right" title="Swipe Right">
+            <span class="btn-text">Swipe</span>
+            <span class="btn-arrow">👉</span>
+          </button>
+        </div>
+
+        <!-- Progress Bar for the 11 cards -->
+        <div class="stack-progress-track">
+          <div class="stack-progress-bar" id="stack-progress-bar"></div>
+        </div>
+
+        <!-- Hint for Swipe on Mobile -->
+        <p class="swipe-hint">
+          <span class="swipe-icon">✨</span> Swipe cards left or right to reveal each memory! <span class="swipe-icon">✨</span>
+        </p>
+
+      </div>
+    </section>
+
+    <!-- ==============================================
+         SCREEN 3: FINAL CELEBRATION & MESSAGE SCREEN
+         ============================================== -->
+    <section id="screen-final" class="screen">
+      <div class="screen-content final-content">
+        
+        <!-- Big Happy Mascot with Heart Balloon -->
+        <div class="final-mascot-wrapper">
+          <div class="balloon-float">🎈💖</div>
+          <div class="final-penguin-img">
+            <svg viewBox="0 0 200 210" width="140" height="150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="fBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#344054"/>
+                  <stop offset="100%" stop-color="#1D2939"/>
+                </linearGradient>
+                <linearGradient id="fBellyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#FFFFFF"/>
+                  <stop offset="100%" stop-color="#F2F4F7"/>
+                </linearGradient>
+                <linearGradient id="fBeakGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#FFB020"/>
+                  <stop offset="100%" stop-color="#F79009"/>
+                </linearGradient>
+              </defs>
+              <ellipse cx="100" cy="195" rx="50" ry="10" fill="rgba(52, 64, 84, 0.15)"/>
+              <ellipse cx="80" cy="190" rx="15" ry="8" fill="url(#fBeakGrad)"/>
+              <ellipse cx="120" cy="190" rx="15" ry="8" fill="url(#fBeakGrad)"/>
+              
+              <!-- Flippers hugging a big heart -->
+              <ellipse cx="100" cy="120" rx="64" ry="70" fill="url(#fBodyGrad)"/>
+              <path d="M 100 70 C 68 70 56 100 56 138 C 56 172 74 185 100 185 C 126 185 144 172 144 138 C 144 100 132 70 100 70 Z" fill="url(#fBellyGrad)"/>
+              
+              <!-- Cute big heart in arms -->
+              <path d="M 100 145 C 85 125 60 135 75 160 Q 100 185 100 185 Q 100 185 125 160 C 140 135 115 125 100 145 Z" fill="#FF8FBA"/>
+              
+              <!-- Cheeks -->
+              <ellipse cx="72" cy="122" rx="10" ry="7" fill="#FF8FBA" opacity="0.6"/>
+              <ellipse cx="128" cy="122" rx="10" ry="7" fill="#FF8FBA" opacity="0.6"/>
+              
+              <!-- Happy Closed Eyes (^_^) -->
+              <path d="M 72 110 Q 80 102 88 110" stroke="#1D2939" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+              <path d="M 112 110 Q 120 102 128 110" stroke="#1D2939" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+              
+              <!-- Beak -->
+              <polygon points="94,116 106,116 100,126" fill="url(#fBeakGrad)"/>
+              
+              <!-- Party hat -->
+              <polygon points="100,24 82,62 118,62" fill="#FF8FBA"/>
+              <circle cx="100" cy="22" r="6" fill="#FFE483"/>
+            </svg>
+          </div>
+        </div>
+
+        <h2 class="final-title">Happy Birthday, Naina! 💗</h2>
+        <p class="final-subtitle">Made with love by Nihal 🐧💕</p>
+
+        <!-- Nihal's Love Letter Card -->
+        <div class="letter-card">
+          <div class="letter-stamp">💌</div>
+          <div class="letter-header">Dearest Naina,</div>
+          <div class="letter-body" id="final-message-text">
+            <!-- Injected dynamically from CONFIG.finalMessage -->
+          </div>
+          <div class="letter-footer">Forever yours,<br><strong>Nihal 🐧❤️</strong></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="final-actions">
+          <button id="btn-confetti-more" class="game-btn btn-celebrate" type="button">
+            <span>🎉 Throw More Confetti! 💖</span>
+          </button>
+          <button id="btn-replay" class="replay-link-btn" type="button">
+            <span>🔄 Replay Birthday Surprise</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

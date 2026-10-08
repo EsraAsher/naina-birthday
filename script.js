@@ -1,0 +1,814 @@
+/**
+ * NAINA'S BIRTHDAY SURPRISE - CLIENT LOGIC
+ * Pure Vanilla JavaScript - Mobile-first 3D Card Stack with Gestures & Confetti
+ */
+
+/* ==========================================================================
+   CONFIG - EASY TO CUSTOMIZE FOR NIHAL
+   ========================================================================== */
+const CONFIG = {
+  // Names
+  recipientName: "Naina",
+  senderName: "Nihal",
+
+  // The 11 Birthday Card Images in /assets/cards/
+  // The system uses high-performance WebP with automatic PNG fallback
+  cards: [
+    "assets/cards/1.webp",
+    "assets/cards/2.webp",
+    "assets/cards/3.webp",
+    "assets/cards/4.webp",
+    "assets/cards/5.webp",
+    "assets/cards/6.webp",
+    "assets/cards/7.webp",
+    "assets/cards/8.webp",
+    "assets/cards/9.webp",
+    "assets/cards/10.webp",
+    "assets/cards/11.webp"
+  ],
+
+  // Romantic Birthday Quote & Letter shown after all cards are slid
+  finalMessage: `“In all the world, there is no heart for me like yours. In all the world, there is no love for you like mine.” 💖✨
+
+Happy Birthday to the girl who stole my heart! 🎂💖
+
+Every moment spent with you is a little treasure I hold close. Thank you for your warmth, your sweetness, your goofy laughs, and all the happiness you bring into my world.
+
+I hope this year brings you everything your heart wishes for and more. You deserve all the joy in the universe, and I'm so lucky to celebrate another wonderful year of you.
+
+Happy Birthday, my Naina! 💕✨`,
+
+  // Music placeholder toast
+  musicMessage: "Music coming soon 💗 (Nihal's special playlist)"
+};
+
+
+/* ==========================================================================
+   WEB AUDIO API SOUND SYNTHESIS
+   100% Offline, Zero external audio assets, works instantly in any browser
+   ========================================================================== */
+class SoundEffects {
+  constructor() {
+    this.enabled = true;
+    this.ctx = null;
+  }
+
+  init() {
+    if (!this.ctx && (window.AudioContext || window.webkitAudioContext)) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioCtx();
+    }
+  }
+
+  playHappyChime() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+    notes.forEach((freq, index) => {
+      setTimeout(() => {
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.35);
+        } catch (e) {}
+      }, index * 85);
+    });
+  }
+
+  playSadChime() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const notes = [440, 392, 349.23]; // A4, G4, F4
+    notes.forEach((freq, index) => {
+      setTimeout(() => {
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.4);
+        } catch (e) {}
+      }, index * 120);
+    });
+  }
+
+  playPop() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(340, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(860, this.ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.14, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.12);
+    } catch (e) {}
+  }
+
+  playFanfare() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+    notes.forEach((freq, idx) => {
+      setTimeout(() => {
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.16, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.45);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.45);
+        } catch (e) {}
+      }, idx * 110);
+    });
+  }
+}
+
+const sfx = new SoundEffects();
+
+
+/* ==========================================================================
+   CONFETTI GENERATOR
+   ========================================================================== */
+class ConfettiEffect {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.particles = [];
+    this.animId = null;
+    this.colors = ['#FF8FBA', '#FFCDE1', '#BDE7FF', '#FFE483', '#E7D9FF', '#FFFFFF'];
+    
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+  }
+
+  resize() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  }
+
+  burst(count = 50, originY = 0.5) {
+    const startX = this.canvas.width / 2;
+    const startY = this.canvas.height * originY;
+
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * Math.random());
+      const speed = 4 + Math.random() * 8;
+      this.particles.push({
+        x: startX,
+        y: startY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 4,
+        size: 5 + Math.random() * 6,
+        color: this.colors[Math.floor(Math.random() * this.colors.length)],
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 8,
+        gravity: 0.22,
+        drag: 0.96,
+        opacity: 1,
+        life: 0.012 + Math.random() * 0.015,
+        isHeart: Math.random() > 0.65
+      });
+    }
+
+    if (!this.animId) {
+      this.loop();
+    }
+  }
+
+  loop() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += p.gravity;
+      p.vx *= p.drag;
+      p.rotation += p.rotationSpeed;
+      p.opacity -= p.life;
+
+      if (p.opacity <= 0 || p.y > this.canvas.height + 20) {
+        this.particles.splice(i, 1);
+        continue;
+      }
+
+      this.ctx.save();
+      this.ctx.globalAlpha = Math.max(0, p.opacity);
+      this.ctx.translate(p.x, p.y);
+      this.ctx.rotate((p.rotation * Math.PI) / 180);
+      this.ctx.fillStyle = p.color;
+
+      if (p.isHeart) {
+        const s = p.size * 0.7;
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, s * 0.3);
+        this.ctx.bezierCurveTo(-s, -s * 0.6, -s * 1.2, s * 0.6, 0, s * 1.2);
+        this.ctx.bezierCurveTo(s * 1.2, s * 0.6, s, -s * 0.6, 0, s * 0.3);
+        this.ctx.fill();
+      } else {
+        this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+      }
+
+      this.ctx.restore();
+    }
+
+    if (this.particles.length > 0) {
+      this.animId = requestAnimationFrame(() => this.loop());
+    } else {
+      this.animId = null;
+    }
+  }
+}
+
+
+/* ==========================================================================
+   CARD STACK CONTROLLER
+   Gestures: Touch swipe left/right, Mouse drag, Buttons, Undo, Progress
+   ========================================================================== */
+class CardStackManager {
+  constructor(containerId, onComplete, sfxInstance) {
+    this.container = document.getElementById(containerId);
+    this.onComplete = onComplete;
+    this.sfx = sfxInstance;
+    this.cards = CONFIG.cards;
+    this.totalCards = this.cards.length;
+    this.currentIndex = 0;
+    this.cardElements = [];
+
+    // Drag tracking state
+    this.isDragging = false;
+    this.startX = 0;
+    this.startY = 0;
+    this.currentX = 0;
+    this.currentY = 0;
+    this.activeCard = null;
+
+    // UI elements
+    this.indexDisplay = document.getElementById('current-index-display');
+    this.totalDisplay = document.getElementById('total-count-display');
+    this.progressBar = document.getElementById('stack-progress-bar');
+    this.btnUndo = document.getElementById('btn-undo');
+    this.btnSwipeLeft = document.getElementById('btn-swipe-left');
+    this.btnSwipeRight = document.getElementById('btn-swipe-right');
+  }
+
+  init() {
+    this.totalDisplay.textContent = this.totalCards;
+    this.renderCards();
+    this.updateStackPositions();
+    this.setupButtonListeners();
+  }
+
+  renderCards() {
+    this.container.innerHTML = '';
+    this.cardElements = [];
+
+    this.cards.forEach((cardSrc, idx) => {
+      const cardEl = document.createElement('div');
+      cardEl.className = 'stack-card';
+      cardEl.dataset.index = idx;
+
+      // Badges that show while dragging
+      const badgeLeft = document.createElement('div');
+      badgeLeft.className = 'stack-badge badge-swipe-left';
+      badgeLeft.textContent = '💖 NEXT';
+
+      const badgeRight = document.createElement('div');
+      badgeRight.className = 'stack-badge badge-swipe-right';
+      badgeRight.textContent = '🌸 NEXT';
+
+      // Card Image
+      const img = document.createElement('img');
+      img.className = 'stack-card-img';
+      img.alt = `Birthday card ${idx + 1} for Naina`;
+      img.loading = idx < 3 ? 'eager' : 'lazy';
+      img.src = cardSrc;
+
+      // Fallback: If WebP fails, try PNG. If PNG fails, show cute message
+      img.addEventListener('error', () => {
+        if (img.src.endsWith('.webp')) {
+          img.src = cardSrc.replace('.webp', '.png');
+        } else {
+          // If file missing altogether
+          img.style.display = 'none';
+          const fallback = document.createElement('div');
+          fallback.className = 'stack-card-fallback';
+          fallback.innerHTML = `
+            <div style="font-size: 2.5rem; margin-bottom: 8px;">🐧💌</div>
+            <h4 style="font-family: var(--font-display); color: var(--pink-dark); margin-bottom: 4px;">Memory #${idx + 1}</h4>
+            <p style="font-size: 0.9rem; color: #475467;">A sweet surprise from Nihal to Naina 💕</p>
+          `;
+          cardEl.appendChild(fallback);
+        }
+      });
+
+      cardEl.appendChild(badgeLeft);
+      cardEl.appendChild(badgeRight);
+      cardEl.appendChild(img);
+      this.container.appendChild(cardEl);
+      this.cardElements.push(cardEl);
+    });
+  }
+
+  updateStackPositions() {
+    this.cardElements.forEach((card, idx) => {
+      card.className = 'stack-card';
+      card.style.transform = '';
+      card.style.opacity = '';
+      card.style.transition = '';
+
+      // Reset badges
+      const badges = card.querySelectorAll('.stack-badge');
+      badges.forEach(b => b.style.opacity = '0');
+
+      if (idx === this.currentIndex) {
+        card.classList.add('card-top');
+        this.attachDragEvents(card);
+      } else if (idx === this.currentIndex + 1) {
+        card.classList.add('card-next-1');
+      } else if (idx === this.currentIndex + 2) {
+        card.classList.add('card-next-2');
+      } else {
+        card.classList.add('card-hidden');
+      }
+    });
+
+    // Update Counter & Progress
+    const displayNum = Math.min(this.currentIndex + 1, this.totalCards);
+    this.indexDisplay.textContent = displayNum;
+    const progressPercent = Math.max(9, (displayNum / this.totalCards) * 100);
+    this.progressBar.style.width = `${progressPercent}%`;
+
+    // Undo button status
+    this.btnUndo.disabled = (this.currentIndex === 0);
+  }
+
+  attachDragEvents(card) {
+    this.activeCard = card;
+
+    // Remove any previous handlers
+    const onTouchStart = (e) => this.handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
+    const onTouchMove = (e) => this.handleDragMove(e.touches[0].clientX, e.touches[0].clientY, e);
+    const onTouchEnd = () => this.handleDragEnd();
+
+    const onMouseDown = (e) => {
+      e.preventDefault();
+      this.handleDragStart(e.clientX, e.clientY);
+      const onMouseMove = (me) => this.handleDragMove(me.clientX, me.clientY, me);
+      const onMouseUp = () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        this.handleDragEnd();
+      };
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    };
+
+    card.ontouchstart = onTouchStart;
+    card.ontouchmove = onTouchMove;
+    card.ontouchend = onTouchEnd;
+    card.onmousedown = onMouseDown;
+  }
+
+  handleDragStart(x, y) {
+    if (this.currentIndex >= this.totalCards) return;
+    this.isDragging = true;
+    this.startX = x;
+    this.startY = y;
+    this.currentX = 0;
+    this.currentY = 0;
+
+    if (this.activeCard) {
+      this.activeCard.style.transition = 'none';
+    }
+  }
+
+  handleDragMove(x, y, event) {
+    if (!this.isDragging || !this.activeCard) return;
+
+    this.currentX = x - this.startX;
+    this.currentY = (y - this.startY) * 0.35; // Gentle vertical dampening
+    const rot = this.currentX * 0.08;
+
+    this.activeCard.style.transform = `translate(${this.currentX}px, ${this.currentY}px) rotate(${rot}deg)`;
+
+    // Badges feedback
+    const badgeLeft = this.activeCard.querySelector('.badge-swipe-left');
+    const badgeRight = this.activeCard.querySelector('.badge-swipe-right');
+
+    if (this.currentX > 20) {
+      if (badgeRight) badgeRight.style.opacity = Math.min(1, (this.currentX - 20) / 70);
+      if (badgeLeft) badgeLeft.style.opacity = 0;
+    } else if (this.currentX < -20) {
+      if (badgeLeft) badgeLeft.style.opacity = Math.min(1, (-this.currentX - 20) / 70);
+      if (badgeRight) badgeRight.style.opacity = 0;
+    } else {
+      if (badgeLeft) badgeLeft.style.opacity = 0;
+      if (badgeRight) badgeRight.style.opacity = 0;
+    }
+
+    // Scale up the next card slightly while dragging
+    const nextCard = this.cardElements[this.currentIndex + 1];
+    if (nextCard) {
+      const progress = Math.min(1, Math.abs(this.currentX) / 140);
+      const scale = 0.96 + 0.04 * progress;
+      const translateY = 10 - 10 * progress;
+      const rotate = -2 * (1 - progress);
+      nextCard.style.transform = `translateY(${translateY}px) scale(${scale}) rotate(${rotate}deg)`;
+    }
+  }
+
+  handleDragEnd() {
+    if (!this.isDragging || !this.activeCard) return;
+    this.isDragging = false;
+
+    const threshold = 70;
+
+    if (Math.abs(this.currentX) > threshold) {
+      // Swipe threshold met: dismiss card in drag direction
+      const direction = this.currentX > 0 ? 'right' : 'left';
+      this.dismissCard(direction);
+    } else {
+      // Snap back to center
+      this.activeCard.style.transition = 'transform 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
+      this.activeCard.style.transform = 'translate(0px, 0px) rotate(0deg)';
+
+      const badges = this.activeCard.querySelectorAll('.stack-badge');
+      badges.forEach(b => b.style.opacity = '0');
+
+      const nextCard = this.cardElements[this.currentIndex + 1];
+      if (nextCard) {
+        nextCard.style.transition = 'transform 0.32s ease';
+        nextCard.style.transform = 'translateY(10px) scale(0.96) rotate(-2deg)';
+      }
+    }
+  }
+
+  dismissCard(direction = 'right') {
+    if (this.currentIndex >= this.totalCards) return;
+
+    const card = this.cardElements[this.currentIndex];
+    if (!card) return;
+
+    this.sfx.playPop();
+
+    // Fly away animation
+    const flyX = direction === 'right' ? '125vw' : '-125vw';
+    const flyRot = direction === 'right' ? '28deg' : '-28deg';
+
+    card.style.transition = 'transform 0.38s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.32s ease';
+    card.style.transform = `translate(${flyX}, ${this.currentY || 0}px) rotate(${flyRot})`;
+    card.style.opacity = '0';
+
+    this.currentIndex++;
+
+    setTimeout(() => {
+      if (this.currentIndex >= this.totalCards) {
+        // All cards finished! Transition to Quote Screen
+        if (typeof this.onComplete === 'function') {
+          this.onComplete();
+        }
+      } else {
+        this.updateStackPositions();
+      }
+    }, 280);
+  }
+
+  undoCard() {
+    if (this.currentIndex <= 0) return;
+    this.sfx.playPop();
+
+    this.currentIndex--;
+    const card = this.cardElements[this.currentIndex];
+    if (card) {
+      card.style.transition = 'none';
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(-35px) scale(1.06) rotate(3deg)';
+      this.updateStackPositions();
+
+      requestAnimationFrame(() => {
+        card.style.transition = 'transform 0.36s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.3s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translate(0px, 0px) rotate(0deg)';
+      });
+    }
+  }
+
+  reset() {
+    this.currentIndex = 0;
+    this.updateStackPositions();
+  }
+
+  setupButtonListeners() {
+    this.btnSwipeLeft.addEventListener('click', () => this.dismissCard('left'));
+    this.btnSwipeRight.addEventListener('click', () => this.dismissCard('right'));
+    this.btnUndo.addEventListener('click', () => this.undoCard());
+
+    // Keyboard support on Desktop
+    document.addEventListener('keydown', (e) => {
+      const slideshowScreen = document.getElementById('screen-slideshow');
+      if (slideshowScreen && slideshowScreen.classList.contains('active')) {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+          this.dismissCard('right');
+        } else if (e.key === 'ArrowLeft') {
+          this.dismissCard('left');
+        } else if (e.key === 'Backspace' || e.key === 'ArrowUp') {
+          this.undoCard();
+        }
+      }
+    });
+  }
+}
+
+
+/* ==========================================================================
+   APP STATE MANAGEMENT & MAIN CONTROLLER
+   ========================================================================== */
+class BirthdayApp {
+  constructor() {
+    this.dom = {
+      // Screens
+      screenWelcome: document.getElementById('screen-welcome'),
+      screenSlideshow: document.getElementById('screen-slideshow'),
+      screenFinal: document.getElementById('screen-final'),
+      
+      // Welcome Screen Elements
+      penguinMascot: document.getElementById('penguin-mascot'),
+      penguinBubble: document.getElementById('penguin-bubble'),
+      bubbleText: document.getElementById('bubble-text'),
+      welcomeActions: document.getElementById('welcome-actions'),
+      btnYes: document.getElementById('btn-yes'),
+      btnNo: document.getElementById('btn-no'),
+      recoverArea: document.getElementById('recover-area'),
+      btnRecover: document.getElementById('btn-recover'),
+      
+      // Gift Overlay
+      giftOverlay: document.getElementById('gift-overlay'),
+      giftBox: document.getElementById('animated-gift-box'),
+      giftStatusText: document.getElementById('gift-status-text'),
+      
+      // Final Screen Elements
+      finalMessageText: document.getElementById('final-message-text'),
+      btnConfettiMore: document.getElementById('btn-confetti-more'),
+      btnReplay: document.getElementById('btn-replay'),
+      
+      // Top Bar Elements
+      musicBtn: document.getElementById('music-btn'),
+      soundToggleBtn: document.getElementById('sound-toggle-btn'),
+      soundIcon: document.getElementById('sound-icon'),
+      toast: document.getElementById('toast'),
+      toastText: document.getElementById('toast-text')
+    };
+
+    this.confetti = new ConfettiEffect('confetti-canvas');
+    this.stackManager = new CardStackManager('card-stack', () => this.handleStackCompleted(), sfx);
+  }
+
+  init() {
+    this.setupConfig();
+    this.setupEventListeners();
+    this.stackManager.init();
+  }
+
+  setupConfig() {
+    this.dom.finalMessageText.textContent = CONFIG.finalMessage;
+  }
+
+  setupEventListeners() {
+    // Welcome Screen: YES
+    this.dom.btnYes.addEventListener('click', () => this.handleYesClick());
+
+    // Welcome Screen: NO
+    this.dom.btnNo.addEventListener('click', () => this.handleNoClick());
+
+    // Welcome Screen: RECOVER ("TAP HERE")
+    this.dom.btnRecover.addEventListener('click', () => this.handleRecoverClick());
+
+    // Final Screen Actions
+    this.dom.btnConfettiMore.addEventListener('click', () => {
+      sfx.playFanfare();
+      this.confetti.burst(85, 0.4);
+    });
+
+    this.dom.btnReplay.addEventListener('click', () => this.replaySurprise());
+
+    // Top Controls
+    this.dom.musicBtn.addEventListener('click', () => {
+      sfx.playPop();
+      this.showToast(CONFIG.musicMessage);
+    });
+
+    this.dom.soundToggleBtn.addEventListener('click', () => {
+      sfx.enabled = !sfx.enabled;
+      this.dom.soundIcon.textContent = sfx.enabled ? '🔊' : '🔇';
+      this.showToast(sfx.enabled ? 'Sound enabled 🎶' : 'Sound muted 🔇');
+    });
+  }
+
+  /* ==========================================================================
+     INTERACTIONS: YES / NO / RECOVER FLOW
+     ========================================================================== */
+  handleYesClick() {
+    sfx.playHappyChime();
+    
+    // 1. Penguin jumps excitedly with joyful eyes
+    this.dom.penguinMascot.classList.remove('sad');
+    this.dom.penguinMascot.classList.add('excited');
+    this.dom.penguinMascot.classList.add('state-happy');
+    this.dom.screenWelcome.classList.remove('dimmed');
+
+    // 2. Speech bubble celebration
+    this.dom.bubbleText.textContent = "YAYYYYY!! 💕🐧";
+
+    // 3. Confetti burst
+    this.confetti.burst(35, 0.6);
+
+    // 4. Disable buttons during transition
+    this.dom.btnYes.disabled = true;
+    this.dom.btnNo.disabled = true;
+
+    // 5. Short transition into gift opening (0.9s)
+    setTimeout(() => {
+      this.triggerGiftOpening();
+    }, 950);
+  }
+
+  handleNoClick() {
+    sfx.playSadChime();
+
+    // 1. Penguin gets sad with crying tears and gentle shiver
+    this.dom.penguinMascot.classList.remove('excited');
+    this.dom.penguinMascot.classList.add('sad');
+    this.dom.penguinMascot.classList.remove('state-happy');
+    this.dom.penguinMascot.classList.add('state-sad');
+    this.dom.screenWelcome.classList.add('dimmed');
+
+    // 2. Speech bubble update
+    this.dom.bubbleText.textContent = "Oh... 🥺";
+
+    // 3. Hide initial buttons, show prominent TAP HERE recover area
+    this.dom.welcomeActions.style.display = 'none';
+    this.dom.recoverArea.style.display = 'flex';
+  }
+
+  handleRecoverClick() {
+    sfx.playPop();
+
+    // 1. Penguin becomes happy again
+    this.dom.penguinMascot.classList.remove('sad');
+    this.dom.penguinMascot.classList.remove('state-sad');
+    this.dom.penguinMascot.classList.add('excited');
+    this.dom.penguinMascot.classList.add('state-happy');
+    this.dom.screenWelcome.classList.remove('dimmed');
+
+    // 2. Speech bubble cheerful response
+    this.dom.bubbleText.textContent = "I knew you'd want it!! 💗🐧";
+
+    // 3. Confetti burst
+    this.confetti.burst(35, 0.6);
+
+    // 4. Disable button
+    this.dom.btnRecover.disabled = true;
+
+    // 5. Transition into gift opening
+    setTimeout(() => {
+      this.triggerGiftOpening();
+    }, 950);
+  }
+
+  /* ==========================================================================
+     GIFT OPENING ANIMATION & TRANSITION TO CARD STACK
+     ========================================================================== */
+  triggerGiftOpening() {
+    sfx.playFanfare();
+
+    this.dom.giftOverlay.style.display = 'flex';
+    requestAnimationFrame(() => {
+      this.dom.giftOverlay.classList.add('active');
+      this.dom.giftBox.classList.add('shake');
+    });
+
+    // Pop open the box
+    setTimeout(() => {
+      this.dom.giftBox.classList.remove('shake');
+      this.dom.giftBox.classList.add('opened');
+      this.dom.giftStatusText.textContent = "Surprise for Naina! 💖";
+      this.confetti.burst(65, 0.5);
+
+      // Transition smoothly into card stack screen
+      setTimeout(() => {
+        this.dom.giftOverlay.classList.remove('active');
+        setTimeout(() => {
+          this.dom.giftOverlay.style.display = 'none';
+          this.switchToScreen('slideshow');
+        }, 300);
+      }, 700);
+
+    }, 750);
+  }
+
+  /* ==========================================================================
+     TRIGGERED WHEN ALL 11 CARDS ARE SLID / SWIPED
+     ========================================================================== */
+  handleStackCompleted() {
+    sfx.playFanfare();
+    this.confetti.burst(80, 0.45);
+
+    setTimeout(() => {
+      this.switchToScreen('final');
+      // Extra celebration confetti shower on the quote screen!
+      setTimeout(() => {
+        this.confetti.burst(60, 0.35);
+      }, 400);
+    }, 350);
+  }
+
+  replaySurprise() {
+    sfx.playPop();
+
+    // Reset Welcome Screen state
+    this.dom.welcomeActions.style.display = 'flex';
+    this.dom.recoverArea.style.display = 'none';
+    this.dom.btnYes.disabled = false;
+    this.dom.btnNo.disabled = false;
+    this.dom.btnRecover.disabled = false;
+    
+    // Reset Penguin Mascot
+    this.dom.penguinMascot.className = 'penguin-wrapper';
+    this.dom.screenWelcome.classList.remove('dimmed');
+    this.dom.bubbleText.textContent = "Hi Naina! I have something special for you! 🎂";
+
+    // Reset Gift Box
+    this.dom.giftBox.className = 'gift-box';
+    this.dom.giftStatusText.textContent = "Opening your surprise... ✨";
+
+    // Reset the card stack
+    this.stackManager.reset();
+
+    // Switch back to welcome screen
+    this.switchToScreen('welcome');
+  }
+
+  switchToScreen(screenName) {
+    this.dom.screenWelcome.classList.remove('active');
+    this.dom.screenSlideshow.classList.remove('active');
+    this.dom.screenFinal.classList.remove('active');
+
+    if (screenName === 'welcome') {
+      this.dom.screenWelcome.classList.add('active');
+    } else if (screenName === 'slideshow') {
+      this.dom.screenSlideshow.classList.add('active');
+    } else if (screenName === 'final') {
+      this.dom.screenFinal.classList.add('active');
+    }
+  }
+
+  showToast(message) {
+    this.dom.toastText.textContent = message;
+    this.dom.toast.classList.add('show');
+    clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => {
+      this.dom.toast.classList.remove('show');
+    }, 2800);
+  }
+}
+
+// Initialize on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+  const app = new BirthdayApp();
+  app.init();
+});

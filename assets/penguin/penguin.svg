@@ -1,0 +1,65 @@
+<svg viewBox="0 0 200 220" width="200" height="220" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#344054"/>
+      <stop offset="100%" stop-color="#1D2939"/>
+    </linearGradient>
+    <linearGradient id="bellyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F2F4F7"/>
+    </linearGradient>
+    <linearGradient id="hatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF8FBA"/>
+      <stop offset="100%" stop-color="#FFCDE1"/>
+    </linearGradient>
+    <linearGradient id="beakGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFB020"/>
+      <stop offset="100%" stop-color="#F79009"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Shadow -->
+  <ellipse cx="100" cy="205" rx="55" ry="12" fill="rgba(52, 64, 84, 0.15)"/>
+
+  <!-- Feet -->
+  <ellipse cx="78" cy="200" rx="16" ry="9" fill="url(#beakGrad)" transform="rotate(-5 78 200)"/>
+  <ellipse cx="122" cy="200" rx="16" ry="9" fill="url(#beakGrad)" transform="rotate(5 122 200)"/>
+
+  <!-- Flippers -->
+  <path d="M 45 110 C 25 125 22 155 42 165 C 48 168 56 150 56 130 Z" fill="url(#bodyGrad)"/>
+  <path d="M 155 110 C 175 125 178 155 158 165 C 152 168 144 150 144 130 Z" fill="url(#bodyGrad)"/>
+
+  <!-- Body -->
+  <ellipse cx="100" cy="125" rx="68" ry="76" fill="url(#bodyGrad)"/>
+
+  <!-- White Belly -->
+  <path d="M 100 70 C 65 70 52 105 52 145 C 52 180 72 195 100 195 C 128 195 148 180 148 145 C 148 105 135 70 100 70 Z" fill="url(#bellyGrad)"/>
+
+  <!-- Cheeks -->
+  <ellipse cx="68" cy="132" rx="11" ry="8" fill="#FF8FBA" opacity="0.65"/>
+  <ellipse cx="132" cy="132" rx="11" ry="8" fill="#FF8FBA" opacity="0.65"/>
+
+  <!-- Eyes (Kawaii Shiny) -->
+  <circle cx="76" cy="118" r="7.5" fill="#1D2939"/>
+  <circle cx="74" cy="115" r="2.5" fill="#FFFFFF"/>
+  <circle cx="78" cy="120" r="1.2" fill="#FFFFFF"/>
+
+  <circle cx="124" cy="118" r="7.5" fill="#1D2939"/>
+  <circle cx="122" cy="115" r="2.5" fill="#FFFFFF"/>
+  <circle cx="126" cy="120" r="1.2" fill="#FFFFFF"/>
+
+  <!-- Beak -->
+  <path d="M 90 126 C 90 126 100 122 110 126 C 110 126 102 142 100 142 C 98 142 90 126 90 126 Z" fill="url(#beakGrad)"/>
+
+  <!-- Party Hat -->
+  <polygon points="100,20 78,66 122,66" fill="url(#hatGrad)" stroke="#FF8FBA" stroke-width="1.5"/>
+  <path d="M 86 52 Q 100 46 114 52" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.8"/>
+  <path d="M 92 36 Q 100 32 108 36" stroke="#FFE483" stroke-width="2.5" fill="none"/>
+  <circle cx="100" cy="18" r="8" fill="#FFE483"/>
+  <ellipse cx="100" cy="66" rx="24" ry="5" fill="#FFFFFF"/>
+
+  <!-- Bowtie -->
+  <polygon points="88,146 100,152 88,158" fill="#FF8FBA"/>
+  <polygon points="112,146 100,152 112,158" fill="#FF8FBA"/>
+  <circle cx="100" cy="152" r="4" fill="#FF6B9E"/>
+</svg>
