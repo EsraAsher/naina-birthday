@@ -277,14 +277,12 @@ class CardStackManager {
 
     // UI elements
     this.progressBar = document.getElementById('stack-progress-bar');
-    this.btnSwipeLeft = document.getElementById('btn-swipe-left');
-    this.btnSwipeRight = document.getElementById('btn-swipe-right');
   }
 
   init() {
     this.renderCards();
     this.updateStackPositions();
-    this.setupButtonListeners();
+    this.setupKeyboardListeners();
   }
 
   renderCards() {
@@ -499,11 +497,8 @@ class CardStackManager {
     this.updateStackPositions();
   }
 
-  setupButtonListeners() {
-    this.btnSwipeLeft.addEventListener('click', () => this.dismissCard('left'));
-    this.btnSwipeRight.addEventListener('click', () => this.dismissCard('right'));
-
-    // Keyboard support on Desktop
+  setupKeyboardListeners() {
+    // Keyboard support on Desktop (Arrow keys / Space)
     document.addEventListener('keydown', (e) => {
       const slideshowScreen = document.getElementById('screen-slideshow');
       if (slideshowScreen && slideshowScreen.classList.contains('active')) {

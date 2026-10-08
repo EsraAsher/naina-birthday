@@ -668,13 +668,13 @@ html, body {
 /* The 3D Card Stack Wrapper */
 .stack-wrapper {
   position: relative;
-  width: min(84vw, 320px);
+  width: min(86vw, 330px);
   aspect-ratio: 1414 / 2000;
-  max-height: 58vh;
+  max-height: 60vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto;
+  margin: auto auto;
   perspective: 1000px;
 }
 
@@ -795,53 +795,14 @@ html, body {
   display: none !important;
 }
 
-/* Stack Controls */
-.stack-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 14px;
-  width: 100%;
-  max-width: 310px;
-}
-
-.stack-btn {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
-  border-radius: var(--radius-md);
-  background: #FFFFFF;
-  border: 2px solid var(--baby-pink);
-  box-shadow: 0 4px 0 #F48BAC, 0 6px 14px rgba(255, 143, 186, 0.2);
-  color: var(--pink-dark);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 18px;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-  outline: none;
-}
-
-.stack-btn:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #F48BAC, 0 2px 6px rgba(255, 143, 186, 0.2);
-}
-
-.nav-btn-swipe {
-  flex: 1;
-}
-
 /* Stack Progress Track */
 .stack-progress-track {
   width: 100%;
-  max-width: 300px;
+  max-width: 290px;
   height: 6px;
   background: rgba(255, 205, 225, 0.4);
   border-radius: var(--radius-full);
-  margin-top: 8px;
+  margin-top: 14px;
   overflow: hidden;
 }
 
@@ -855,14 +816,14 @@ html, body {
 
 /* Swipe Hint */
 .swipe-hint {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--muted-text);
-  margin-top: 8px;
+  margin-top: 10px;
   display: flex;
   align-items: center;
   gap: 6px;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .swipe-icon {
