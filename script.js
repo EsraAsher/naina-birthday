@@ -594,6 +594,10 @@ class BirthdayApp {
       toastText: document.getElementById('toast-text')
     };
 
+    // Background Music Audio Engine
+    this.bgMusic = document.getElementById('bg-music');
+    this.isMusicPlaying = false;
+
     this.confetti = new ConfettiEffect('confetti-canvas');
     this.stackManager = new CardStackManager('card-stack', () => this.handleStackCompleted(), sfx);
   }
@@ -627,10 +631,7 @@ class BirthdayApp {
     this.dom.btnReplay.addEventListener('click', () => this.replaySurprise());
 
     // Top Controls
-    this.dom.musicBtn.addEventListener('click', () => {
-      sfx.playPop();
-      this.showToast(CONFIG.musicMessage);
-    });
+    this.dom.musicBtn.addEventListener('click', () => this.toggleMusic());
 
     this.dom.soundToggleBtn.addEventListener('click', () => {
       sfx.enabled = !sfx.enabled;
@@ -640,11 +641,70 @@ class BirthdayApp {
   }
 
   /* ==========================================================================
+     MUSIC CONTROLLER (FADE-IN & LOOPING)
+     ========================================================================== */
+  playMusicWithFade(targetVolume = 0.75, durationMs = 2800) {
+    if (!this.bgMusic) return;
+    this.bgMusic.loop = true;
+
+    // Start playback if paused
+    if (!this.isMusicPlaying || this.bgMusic.paused) {
+      this.bgMusic.volume = 0;
+      const playPromise = this.bgMusic.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          this.isMusicPlaying = true;
+          this.dom.musicBtn.classList.add('playing');
+          this.showToast("Now playing: Baarishein 🎶💗");
+
+          const startTime = performance.now();
+          const fadeStep = (now) => {
+            if (!this.isMusicPlaying) return;
+            const elapsed = now - startTime;
+            const progress = Math.min(1, elapsed / durationMs);
+            this.bgMusic.volume = progress * targetVolume;
+            if (progress < 1) {
+              requestAnimationFrame(fadeStep);
+            }
+          };
+          requestAnimationFrame(fadeStep);
+        }).catch(err => {
+          console.log("Audio autoplay prevented:", err);
+        });
+      }
+    }
+  }
+
+  toggleMusic() {
+    sfx.playPop();
+    if (!this.bgMusic) return;
+
+    if (this.isMusicPlaying) {
+      this.bgMusic.pause();
+      this.isMusicPlaying = false;
+      this.dom.musicBtn.classList.remove('playing');
+      this.showToast("Music paused ⏸️");
+    } else {
+      this.bgMusic.volume = 0.75;
+      this.bgMusic.play().then(() => {
+        this.isMusicPlaying = true;
+        this.dom.musicBtn.classList.add('playing');
+        this.showToast("Now playing: Baarishein 🎶💗");
+      }).catch(err => {
+        console.log("Audio error:", err);
+      });
+    }
+  }
+
+  /* ==========================================================================
      INTERACTIONS: YES / NO / RECOVER FLOW
      ========================================================================== */
   handleYesClick() {
     sfx.playHappyChime();
     
+    // Fade in background music automatically on YES!
+    this.playMusicWithFade();
+
     // 1. Penguin jumps excitedly with joyful eyes
     this.dom.penguinMascot.classList.remove('sad');
     this.dom.penguinMascot.classList.add('excited');
@@ -687,6 +747,9 @@ class BirthdayApp {
 
   handleRecoverClick() {
     sfx.playPop();
+
+    // Fade in background music automatically on TAP HERE!
+    this.playMusicWithFade();
 
     // 1. Penguin becomes happy again
     this.dom.penguinMascot.classList.remove('sad');
